@@ -47,7 +47,7 @@ class LabelCheck(BaseDockerfileCheck):
 
 labels_to_check = [
     {
-        "key": "John Doe",
+        "key": "maintainer",
         "allowed_values": ".*",
         "version": "1.0",
         "description": "A sample label"
