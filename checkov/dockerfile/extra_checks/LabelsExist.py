@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from typing import TYPE_CHECKING, List
-import re
+import re, json
 
 from checkov.common.models.enums import CheckCategories, CheckResult
 from checkov.dockerfile.base_dockerfile_check import BaseDockerfileCheck
@@ -22,42 +22,64 @@ class LabelCheck(BaseDockerfileCheck):
 
     def scan_resource_conf(self, conf: dict[str, list[_Instruction]]) -> Tuple[CheckResult, Union[list[_Instruction], None]]:  # type:ignore[override]  # special wildcard behaviour
         
-        label_pattern = re.compile(r'(\S+)=((["\'])([^\3]*?)\3)')
+        # label_pattern = re.compile(r'(\w+)="([^"]+)"')
+        # because we're looking for any use of "" or '' or nothing at all, the resulting matches will have 4 elements 
+        label_pattern = re.compile(r'(\w+)=(?:"([^"]+)"|\'([^\']+)\'|([^\'"][^ ]*))')
         label_pairs = {}
 
-        for instruction, content in conf.items():
-            if instruction == "LABEL":
-                pairs = label_pattern.findall(content)
-                for pair in pairs:
-                    key, value = pair.split("=",1)
-                    label_pairs[key] = value
+        if "LABEL" in conf.keys():
+            raw_label_instructions = conf['LABEL']
+        else:
+            self.details.append("No LABEL instruction found")   
+            return CheckResult.FAILED, None
         
-        keys_present = label_pairs.keys()
-        for mandatory_label in self.labels_to_check:
-            if mandatory_label['key'] in keys_present:
-                allowed_values_pattern = re.compile(mandatory_label['allowed_values'])
-                if allowed_values_pattern.match(label_pairs[mandatory_label['key']]):
-                    continue
-                else:
-                    self.details.append("Label "+mandatory_label['key']+" exists but does not match allowed values "+mandatory_label['allowed_values'])
-                    return CheckResult.FAILED, None
+        for raw_label_instructions in conf['LABEL']:
+
+            instruction = raw_label_instructions['instruction'] # should be LABEL
+            raw_value = raw_label_instructions['value']
+
+            if not isinstance(raw_value, str):
+                continue
+
+            key_value_pairs = label_pattern.findall(raw_value)
+            key_value_pairs = [tuple(filter(None, x)) for x in key_value_pairs]
+
+            for match in key_value_pairs:
+                label_pairs[match[0]] = match[1]
+
+    
+        for label_to_check_key,label_to_check in self.labels_to_check.items():
+
+            if label_to_check_key not in label_pairs.keys():
+                self.details.append("Label "+label_to_check_key+" is not defined")                 
+                return CheckResult.FAILED, None
+            
+            allowed_values_pattern = re.compile(r""+label_to_check['allowed_values'])
+            if allowed_values_pattern.match(label_pairs[label_to_check_key]):
+                continue
             else:
-                self.details.append("Label "+mandatory_label['key']+" does not exist")
+                self.details.append("Label "+label_to_check_key+" exists but does not match allowed values "+label_to_check['allowed_values'])
                 return CheckResult.FAILED, None
 
-labels_to_check = [
-    {
-        "key": "maintainer",
+        return CheckResult.PASSED, None
+
+labels_to_check = {
+    "maintainer": {
         "allowed_values": ".*",
         "version": "1.0",
-        "description": "A sample label"
+        "description": "A sample label - Any value accepted"
+    }, 
+    "maintainer_specific":{
+        "allowed_values": "^[\w\.-]+@[a-zA-Z0-9-]+\.[a-zA-Z]{2,}$",
+        "version": "1.0",
+        "description": "A sample label - Specific regex"
     },
-    {
-        "key": "workload",
-        "allowed_values": ".*",
-        "version": "1.0",
-        "description": "A sample label"
-    }
-]
+    # "random_label":{
+    #     "key": "unspecified_random_label",
+    #     "allowed_values": ".*",
+    #     "version": "1.0",
+    #     "description": "A sample label"
+    # }
+}
 
 check = LabelCheck(labels_to_check)
