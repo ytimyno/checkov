@@ -74,12 +74,12 @@ labels_to_check = {
         "version": "1.0",
         "description": "A sample label - Specific regex"
     },
-    # "random_label":{
-    #     "key": "unspecified_random_label",
-    #     "allowed_values": ".*",
-    #     "version": "1.0",
-    #     "description": "A sample label"
-    # }
+    "random_label":{
+        "key": "unspecified_random_label",
+        "allowed_values": ".*",
+        "version": "1.0",
+        "description": "A sample label - This will fail"
+    }
 }
 
 check = LabelCheck(labels_to_check)
