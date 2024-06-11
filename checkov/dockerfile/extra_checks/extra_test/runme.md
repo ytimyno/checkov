@@ -1,0 +1,1 @@
+checkov -d images/ --external-checks-dir ../../extra_checks --framework dockerfile -c CKV_DOCKER_LABEL_CHECK
