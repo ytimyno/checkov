@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from typing import TYPE_CHECKING, List
-import re, json
+import re, json, os
 
 from checkov.common.models.enums import CheckCategories, CheckResult
 from checkov.dockerfile.base_dockerfile_check import BaseDockerfileCheck
@@ -63,7 +63,8 @@ class LabelCheck(BaseDockerfileCheck):
 
         return CheckResult.PASSED, None
 
-labels_to_check = {
+
+default_labels = {
     "maintainer": {
         "allowed_values": ".*",
         "version": "1.0",
@@ -81,5 +82,20 @@ labels_to_check = {
     #     "description": "A sample label - This will fail"
     # }
 }
+
+file_name = 'containerfile_labels.json'
+
+if os.path.exists(file_name):
+    # If the file exists, open and read the JSON data
+    with open(file_name, 'r') as file:
+        try:
+            labels_to_check = json.load(file)
+        except:
+            labels_to_check = default_labels
+else:
+    # If the file doesn't exist, use the default dictionary
+    labels_to_check = default_labels
+
+
 
 check = LabelCheck(labels_to_check)
