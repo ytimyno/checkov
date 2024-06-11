@@ -1,6 +1,6 @@
 checkov -d images/ --external-checks-dir ../../extra_checks --framework dockerfile -c CKV_DOCKER_LABEL_CHECK
 
-if I try, from the directory I am located in when running checkov, to open a file called containerfile_labels.json which is a dictionary similar to this, but if none exists, use the default 
+If I try, from the directory I am located in when running checkov, to open a file called containerfile_labels.json which is a dictionary similar to this, but if none exists, use the default 
 
 {
     "maintainer": {
@@ -14,3 +14,5 @@ if I try, from the directory I am located in when running checkov, to open a fil
         "description": "A sample label - Specific regex"
     }
 }
+
+And double checked the file is obtained from the directory the checkov command is ran! So that's easy enough.
