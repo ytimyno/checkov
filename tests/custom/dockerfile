@@ -1,6 +1,6 @@
 FROM ubuntu:20.04
 
-LABEL maintainer="John Doe" version="1.0" description="A sample Dockerfile"
+LABEL maintainer='John Doe' version="1.0" description="A sample Dockerfile"
 
 # Install necessary packages
 RUN apt-get update && \

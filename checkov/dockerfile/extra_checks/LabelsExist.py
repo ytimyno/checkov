@@ -18,7 +18,8 @@ class LabelCheck(BaseDockerfileCheck):
         supported_instructions = ("*",)
         categories = (CheckCategories.NETWORKING,)
         self.labels_to_check = labels_to_check
-        super().__init__(name=name, id=id, categories=categories, supported_instructions=supported_instructions)
+        guideline = "This is a custom policy. Powered by Checkov and Python."
+        super().__init__(name=name, id=id, categories=categories, supported_instructions=supported_instructions, guideline=guideline)
 
     def scan_resource_conf(self, conf: dict[str, list[_Instruction]]) -> Tuple[CheckResult, Union[list[_Instruction], None]]:  # type:ignore[override]  # special wildcard behaviour
         
@@ -78,26 +79,25 @@ class LabelCheck(BaseDockerfileCheck):
         return CheckResult.PASSED, None
 
 
+file_name = 'policy.json'
 default_labels = {
     "maintainer": {
         "allowed_values": ".*",
         "version": "1.0",
-        "description": "A sample label - Any value accepted"
+        "description": "A sample label - Any value accepted. To override this, create a "+file_name+" file in the working directory checkov runs from."
     }, 
     "maintainer_specific":{
         "allowed_values": "^[\w\.-]+@[a-zA-Z0-9-]+\.[a-zA-Z]{2,}$",
         "version": "1.0",
-        "description": "A sample label - Specific regex"
+        "description": "A sample label - Specific regex. To override this, create a "+file_name+" file in the working directory checkov runs from."
     },
     "random_label":{
-        "key": "unspecified_random_label",
-        "allowed_values": ".*",
+        "key": "random_label_key",
+        "allowed_values": "random_label_value",
         "version": "1.0",
-        "description": "A sample label - This will fail"
+        "description": "A sample label - This will fail (unless you do have that unspecified_random_label). To override this, create a "+file_name+" file in the working directory checkov runs from."
     }
 }
-
-file_name = 'containerfile_labels.json'
 
 if os.path.exists(file_name):
     # If the file exists, open and read the JSON data

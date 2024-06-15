@@ -310,6 +310,7 @@ class Runner(ImageReferencerMixin[_DockerfileDefinitions], BaseRunner[_Dockerfil
             file_abs_path=file_abs_path,
             entity_tags=None,
             severity=check.severity,
+            details=check.details,
         )
         record.set_guideline(check.guideline)
         report.add_record(record=record)
